@@ -60,7 +60,6 @@ public class Main extends Application {
         grid.add(txtdatum,1,8);
 
 
-
         primaryStage.setScene(new Scene(grid, 1000, 500));
         primaryStage.show();
     }
