@@ -15,6 +15,12 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,7 +73,7 @@ public class Main extends Application {
         DatePicker dat = new DatePicker();
         dat.setPromptText("datum rođenja");
         grid.add(dat, 1, 8);
-        dat.setOnAction(e -> jelDatum(dat.getEditor()));
+        dat.setOnAction(e -> jelDatum(dat));
 
         Label mjestRodjenja = new Label("Mjesto rodjenja: ");
         ObservableList<String> mjestoRodjenja = FXCollections.observableArrayList(
@@ -147,7 +153,7 @@ public class Main extends Application {
         Button btn = new Button();
         btn.setText("Potvrdi");
         grid.add(btn, 15, 26);
-        btn.setOnAction(e -> jelMozePovrdi(txtime,txtprezime,txtbr,txtjmbg,dat,emaila,smjero,godina,cikl,ch1,ch2,cb1,cb2));
+        btn.setOnAction(e -> jelMozePovrdi(telefon,txtime,txtprezime,txtbr,txtjmbg,dat,emaila,smjero,godina,cikl,ch1,ch2,cb1,cb2));
 
         primaryStage.setScene(new Scene(grid, 1000, 600));
         primaryStage.show();
@@ -156,23 +162,29 @@ public class Main extends Application {
     public void upozorenje(String s){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Neispravan unos");
-        alert.setContentText(s+" nije ispravno, molim Vas popravite!");
+        if(s.length()==0)alert.setContentText("Nešto nije ispravno, molim Vas popravite!");
+        else alert.setContentText(s+" nije ispravno, molim Vas popravite!");
         alert.showAndWait();
     }
 
-    public boolean jelMozePovrdi(TextField txtime,TextField txtprezime,TextField txtbr,TextField txtjmbg, DatePicker dat, TextField email,ComboBox odsjek,ComboBox godina,ComboBox ciklus,CheckBox a,CheckBox b, CheckBox c,CheckBox d){
+    public boolean jelMozePovrdi(TextField telefon,TextField txtime,TextField txtprezime,TextField txtbr,TextField txtjmbg, DatePicker dat, TextField email,ComboBox odsjek,ComboBox godina,ComboBox ciklus,CheckBox a,CheckBox b, CheckBox c,CheckBox d){
         if(!jelIme(txtime, txtime.getText())){upozorenje(txtime.getText());return false;}
         if(!jelIme(txtprezime, txtprezime.getText())){upozorenje(txtprezime.getText());return false;}
-        if(!jelTelefon(txtbr,txtbr.getText())){upozorenje(txtbr.getText());return false;}
+        if(!jelBroj(txtbr,txtbr.getText())){upozorenje(txtbr.getText());return false;}
         if(!jelJmbg(txtjmbg,txtjmbg.getText())){upozorenje(txtjmbg.getText());return false;}
-        if(!jelDatum(dat.getEditor())){upozorenje(dat.getEditor().getText());return false;}
+        if(!jelDatum(dat)){upozorenje(dat.getEditor().getText());return false;}
+        if(!jelTelefon(telefon,telefon.getText())){upozorenje(telefon.getText());return false;}
         if(!jelEmail(email,email.getText())){upozorenje(email.getText());return false;}
         if(odsjek.getSelectionModel().isEmpty()){upozorenje("Selekcija odsjeka");return false;}
         if(ciklus.getSelectionModel().isEmpty()){upozorenje("Selekcija ciklusa");return false;}
         if(godina.getSelectionModel().isEmpty()){upozorenje("Selekcija godine");return false;}
         if((a.isSelected() && b.isSelected()) || (!a.isSelected() && !b.isSelected())){upozorenje("Ne čekirati nijedno(ili čekirati oba) od ponuđenih načina finansiranja");return  false;}
         if((c.isSelected() && d.isSelected()) || (!c.isSelected() && !d.isSelected())){upozorenje("Ne čekirati nijedno(ili čekirati oba) od ponuđenih polja");return  false;}
-        return true;
+        else {
+
+
+            return true;
+        }
     }
 
 
@@ -202,12 +214,24 @@ public class Main extends Application {
                 polje.setStyle("-fx-control-inner-background: #ffb4aa");
                 return false;
             }
-             polje.setStyle("-fx-control-inner-background: #adffac");
+            polje.setStyle("-fx-control-inner-background: #adffac");
             return true;
     }
 
-    public boolean jelDatum(TextField polje){
 
+    public boolean jelDatum(DatePicker dat){
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        Date test = new Date();
+        try {
+            test = sdf.parse(dat.getEditor().getText());
+        }catch(ParseException e){
+            return false;
+        }
+        if(!sdf.format(test).equals(dat.getEditor().getText()))return false;
+        LocalDate localDate = dat.getValue();
+        Instant instant = Instant.from(localDate.atStartOfDay(ZoneId.systemDefault()));
+        Date date = Date.from(instant);
+        if(date.getYear() >= 2017 ||date.getDay()<= 0 || date.getDay()> 31 || date.getMonth() < 1 || date.getMonth() > 31 )return false;
         return true;
     }
 
